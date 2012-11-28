@@ -228,6 +228,12 @@ def tagged_Brown():
             tagNew[1] = 'no POS'
         tagged_Brown.append(tagNew)
     return tagged_Brown
-        
+
+def tagCount(words):
+    tagSet = set()
+    for i in words:
+        tagSet.add(i[1])
+    return tagSet
+
         
         
