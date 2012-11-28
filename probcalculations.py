@@ -16,14 +16,15 @@ def findmaxtag(good, bad):
     return curTag, curMax
 
 
-def applyrule_previoustag(from_tag, to_tag, previous_tag, corpus):
+def applyrule_previoustag(from_tag, to_tag, previous_tag, oldcorpus):
     i = 0
     newcorpus = []
-    for word in corpus[1:]:
+    for word in oldcorpus:
         if (i==0):
             newcorpus.append(tuple([word[0], word[1]]))
-        elif (corpus[i-1][1] == previous_tag and word[1] == from_tag):
+        elif (oldcorpus[i-1][1] == previous_tag and word[1] == from_tag):
             newcorpus.append(tuple([word[0], to_tag]))
+            print 'Orig: ',word, 'New: ',newcorpus[-1]
         else:
             newcorpus.append(tuple([word[0],word[1]]))
     return newcorpus
@@ -99,7 +100,7 @@ for word in words:
 
 
 #####################################
-start = time.time()
+
 num_good_T = dict()
 num_bad_T = dict()
 for itr in tagSet:
@@ -107,10 +108,11 @@ for itr in tagSet:
     num_bad_T[itr] = 0
 
 bestrulelist = []
-thresh = 0
+thresh = 100
 
-
+startOverall = time.time()
 while (True):
+    start = time.time()
     maxval = 0
     counter1 = 0
     for from_tag in tagSet:
@@ -140,16 +142,14 @@ while (True):
             
     if (maxval < thresh):
         break
-    
-
     mostlikelytag = applyrule_previoustag(changefrom_tag,changeto_tag,changeprev_tag,mostlikelytag) 
     bestrulelist.append([changefrom_tag,changeto_tag,changeprev_tag])            
 
-accuracyRule_1 = comparetags(tagwords, mostlikelytag)
-elapsed = time.time()-start
-print 'Time: ',elapsed,' Accuracy after rule 1: ',accuracy
-                
-
+    accuracyRule_1 = comparetags(tagwords, mostlikelytag)
+    elapsed = time.time()-start
+    print 'Time: ',elapsed,' Accuracy of rule: ',accuracy
+                    
+print 'TOTAL TIME: ', time.time()-startOverall
 
 
 
