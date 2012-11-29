@@ -16,13 +16,13 @@ def findmaxtag(good, bad):
     return curTag, curMax
 
 
-def applyrule_previoustag(from_tag, to_tag, previous_tag, oldcorpus):
+def applyrule_previoustwicetag(from_tag, to_tag, previous_tag, oldcorpus):
     i = 0
     newcorpus = []
     for word in oldcorpus:
-        if (i==0):
+        if (i<2):
             newcorpus.append(tuple([word[0], word[1]]))
-        elif ((oldcorpus[i-1][1] == previous_tag) and (word[1] == from_tag)):
+        elif ((oldcorpus[i-2][1] == previous_tag) and (word[1] == from_tag)):
             newcorpus.append(tuple([word[0], to_tag]))
             #print 'Orig: ',word, 'New: ',newcorpus[-1]
         else:
@@ -34,17 +34,15 @@ def comparetags(true,test):
     if(len(true) != len(test)):
         return 'Cant compare....lengths not the same'
     i,wrong = 0,0
-    wronglist = []
     for i in range(len(true)):
         if(test[i][1] != true[i][1]):
-            wronglist.append(test[i][1])
             wrong += 1
-    return wronglist,(len(true)-wrong)*100.0/len(true)
+    return (len(true)-wrong)*100.0/len(true)
 
 #####################################
 start = time.time()
 
-trainpercent = 2
+trainpercent = 5
 
 words = brown.words()
 ntotal = len(words)
@@ -86,7 +84,7 @@ for i in range(nwords):
 ##for i in range(nwords):
 ##    if (mostlikelytag[i][1] != tagwords[i][1]):
 ##        wrong = wrong + 1
-wronglist,accuracy = comparetags(tagwords, mostlikelytag)
+accuracy = comparetags(tagwords, mostlikelytag)
 
 elapsed = time.time()-start
 print 'Time: ',elapsed,' Accuracy: ',accuracy
@@ -111,7 +109,7 @@ bestrulelist = []
 thresh = 0
 
 startOverall = time.time()
-while (True):
+while (True and len(bestrulelist)<6):
     start = time.time()
     maxval = 0
     counter1 = 0
@@ -122,25 +120,25 @@ while (True):
         for to_tag in tagSet:
             #print "     ", counter2
             counter2 += 1
-            i = 1
+            i = 2
             for itr in tagSet:
                 num_good_T[itr] = 0
                 num_bad_T[itr] = 0
-            itr = 0
-            for word in mostlikelytag[1:]:
+            for word in mostlikelytag[2:]:
                 correct_tag = tagwords[i][1]
                 taglist = ambclass[word[0]]
-                if(correct_tag == to_tag and word[1] == from_tag):
-                    num_good_T[mostlikelytag[i-1][1]] += 1
-                if(correct_tag == from_tag and word[1] == from_tag):
-                    num_bad_T[mostlikelytag[i-1][1]] += 1
+                if(to_tag in taglist):
+                    if(from_tag != to_tag):
+                        if(correct_tag == to_tag and word[1] == from_tag):
+                            num_good_T[mostlikelytag[i-2][1]] += 1
+                            #print "To:",to_tag,"From:",from_tag,"Prev:",mostlikelytag[i-1][1]
+                        elif(correct_tag == from_tag and word[1] == from_tag):
+                            num_bad_T[mostlikelytag[i-2][1]] += 1
                 i += 1
 
             maxtag, val = findmaxtag(num_good_T,num_bad_T)
             if (val>maxval):
-                #print 'Good ', num_good_T
-                #print 'Bad', num_bad_T
-                #raw_input("Press enter to exit")
+                #print num_good_T[maxtag], '-', num_bad_T[maxtag]
                 #print '     Maxtag: ',maxtag,' New max: ',val
                 maxval = val
                 changefrom_tag = from_tag
@@ -150,25 +148,13 @@ while (True):
             
     if (maxval < thresh):
         break
-    oldlist = list(mostlikelytag)
-    mostlikelytag = applyrule_previoustag(changefrom_tag,changeto_tag,changeprev_tag,mostlikelytag) 
+    mostlikelytag = applyrule_previoustwicetag(changefrom_tag,changeto_tag,changeprev_tag,mostlikelytag) 
     bestrulelist.append([changefrom_tag,changeto_tag,changeprev_tag])            
 
-    oldwrongtags, oldaccuracy = comparetags(tagwords, oldlist)
-    newwrongtags, newaccuracy = comparetags(tagwords, mostlikelytag)
-    fold  = FreqDist(oldwrongtags)
-    fnew  = FreqDist(newwrongtags)
-
-    print fold.items()
-    print
-    print fnew.items()
-    print
-    print 'Maxval: ', maxval
-    
+    accuracyRule = comparetags(tagwords, mostlikelytag)
     elapsed = time.time()-start
     #print 'Rule List: ',bestrulelist
-    print 'Time: ',elapsed,' Accuracy of rule: ',newaccuracy, ' List: ',bestrulelist[-1]
-    #raw_input("Press Enter....")
+    print 'Time: ',elapsed,' Accuracy of rule: ',accuracyRule, ' List: ',bestrulelist[-1]
                     
 print 'TOTAL TIME: ', time.time()-startOverall
 
