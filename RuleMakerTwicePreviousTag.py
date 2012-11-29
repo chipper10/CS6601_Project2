@@ -43,7 +43,7 @@ def comparetags(true,test):
 #####################################
 start = time.time()
 
-trainpercent = 1
+trainpercent = 50
 
 words = brown.words()
 ntotal = len(words)
@@ -102,7 +102,7 @@ for word in words:
 
 
 #####################################
-
+print 'here'
 num_good_T = dict()
 num_bad_T = dict()
 
