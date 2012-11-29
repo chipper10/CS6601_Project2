@@ -16,7 +16,7 @@ def findmaxtag(good, bad):
     return curTag, curMax
 
 
-def applyrule_previoustwicetag(from_tag, to_tag, previous_tag, oldcorpus):
+def applyrule_twiceprevioustag(from_tag, to_tag, previous_tag, oldcorpus):
     i = 0
     newcorpus = []
     for word in oldcorpus:
@@ -34,6 +34,7 @@ def comparetags(true,test):
     if(len(true) != len(test)):
         return 'Cant compare....lengths not the same'
     i,wrong = 0,0
+    wronglist = []
     for i in range(len(true)):
         if(test[i][1] != true[i][1]):
             wrong += 1
@@ -42,7 +43,7 @@ def comparetags(true,test):
 #####################################
 start = time.time()
 
-trainpercent = 5
+trainpercent = 1
 
 words = brown.words()
 ntotal = len(words)
@@ -109,7 +110,7 @@ bestrulelist = []
 thresh = 0
 
 startOverall = time.time()
-while (True and len(bestrulelist)<6):
+while (True and len(bestrulelist) <= 4):
     start = time.time()
     maxval = 0
     counter1 = 0
@@ -124,21 +125,21 @@ while (True and len(bestrulelist)<6):
             for itr in tagSet:
                 num_good_T[itr] = 0
                 num_bad_T[itr] = 0
+            itr = 0
             for word in mostlikelytag[2:]:
                 correct_tag = tagwords[i][1]
                 taglist = ambclass[word[0]]
-                if(to_tag in taglist):
-                    if(from_tag != to_tag):
-                        if(correct_tag == to_tag and word[1] == from_tag):
-                            num_good_T[mostlikelytag[i-2][1]] += 1
-                            #print "To:",to_tag,"From:",from_tag,"Prev:",mostlikelytag[i-1][1]
-                        elif(correct_tag == from_tag and word[1] == from_tag):
-                            num_bad_T[mostlikelytag[i-2][1]] += 1
+                if(correct_tag == to_tag and word[1] == from_tag):
+                    num_good_T[mostlikelytag[i-2][1]] += 1
+                if(correct_tag == from_tag and word[1] == from_tag):
+                    num_bad_T[mostlikelytag[i-2][1]] += 1
                 i += 1
 
             maxtag, val = findmaxtag(num_good_T,num_bad_T)
             if (val>maxval):
-                #print num_good_T[maxtag], '-', num_bad_T[maxtag]
+                #print 'Good ', num_good_T
+                #print 'Bad', num_bad_T
+                #raw_input("Press enter to exit")
                 #print '     Maxtag: ',maxtag,' New max: ',val
                 maxval = val
                 changefrom_tag = from_tag
@@ -148,15 +149,28 @@ while (True and len(bestrulelist)<6):
             
     if (maxval < thresh):
         break
-    mostlikelytag = applyrule_previoustwicetag(changefrom_tag,changeto_tag,changeprev_tag,mostlikelytag) 
+##    oldlist = list(mostlikelytag)
+    mostlikelytag = applyrule_twiceprevioustag(changefrom_tag,changeto_tag,changeprev_tag,mostlikelytag) 
     bestrulelist.append([changefrom_tag,changeto_tag,changeprev_tag])            
 
-    accuracyRule = comparetags(tagwords, mostlikelytag)
+##    oldwrongtags, oldaccuracy = comparetags(tagwords, oldlist)
+##    newwrongtags, newaccuracy = comparetags(tagwords, mostlikelytag)
+##    fold  = FreqDist(oldwrongtags)
+##    fnew  = FreqDist(newwrongtags)
+
+##    print fold.items()
+##    print
+##    print fnew.items()
+##    print
+##    print 'Maxval: ', maxval
+    
     elapsed = time.time()-start
     #print 'Rule List: ',bestrulelist
-    print 'Time: ',elapsed,' Accuracy of rule: ',accuracyRule, ' List: ',bestrulelist[-1]
+    newaccuracy = comparetags(tagwords, mostlikelytag)
+    print 'Time: ',elapsed,' Accuracy of rule: ',newaccuracy, ' List: ',bestrulelist[-1]
+    #raw_input("Press Enter....")
                     
-print 'TOTAL TIME: ', time.time()-startOverall
+print 'TOTAL TIME: ', time.time()-startOverall, 
 
 
 

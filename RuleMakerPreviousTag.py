@@ -37,14 +37,13 @@ def comparetags(true,test):
     wronglist = []
     for i in range(len(true)):
         if(test[i][1] != true[i][1]):
-            wronglist.append(test[i][1])
             wrong += 1
-    return wronglist,(len(true)-wrong)*100.0/len(true)
+    return (len(true)-wrong)*100.0/len(true)
 
 #####################################
 start = time.time()
 
-trainpercent = 2
+trainpercent = 1
 
 words = brown.words()
 ntotal = len(words)
@@ -86,7 +85,7 @@ for i in range(nwords):
 ##for i in range(nwords):
 ##    if (mostlikelytag[i][1] != tagwords[i][1]):
 ##        wrong = wrong + 1
-wronglist,accuracy = comparetags(tagwords, mostlikelytag)
+accuracy = comparetags(tagwords, mostlikelytag)
 
 elapsed = time.time()-start
 print 'Time: ',elapsed,' Accuracy: ',accuracy
@@ -111,7 +110,7 @@ bestrulelist = []
 thresh = 0
 
 startOverall = time.time()
-while (True):
+while (True and len(bestrulelist) <= 4):
     start = time.time()
     maxval = 0
     counter1 = 0
@@ -150,27 +149,28 @@ while (True):
             
     if (maxval < thresh):
         break
-    oldlist = list(mostlikelytag)
+##    oldlist = list(mostlikelytag)
     mostlikelytag = applyrule_previoustag(changefrom_tag,changeto_tag,changeprev_tag,mostlikelytag) 
     bestrulelist.append([changefrom_tag,changeto_tag,changeprev_tag])            
 
-    oldwrongtags, oldaccuracy = comparetags(tagwords, oldlist)
-    newwrongtags, newaccuracy = comparetags(tagwords, mostlikelytag)
-    fold  = FreqDist(oldwrongtags)
-    fnew  = FreqDist(newwrongtags)
+##    oldwrongtags, oldaccuracy = comparetags(tagwords, oldlist)
+##    newwrongtags, newaccuracy = comparetags(tagwords, mostlikelytag)
+##    fold  = FreqDist(oldwrongtags)
+##    fnew  = FreqDist(newwrongtags)
 
-    print fold.items()
-    print
-    print fnew.items()
-    print
-    print 'Maxval: ', maxval
+##    print fold.items()
+##    print
+##    print fnew.items()
+##    print
+##    print 'Maxval: ', maxval
     
     elapsed = time.time()-start
     #print 'Rule List: ',bestrulelist
+    newaccuracy = comparetags(tagwords, mostlikelytag)
     print 'Time: ',elapsed,' Accuracy of rule: ',newaccuracy, ' List: ',bestrulelist[-1]
     #raw_input("Press Enter....")
                     
-print 'TOTAL TIME: ', time.time()-startOverall
+print 'TOTAL TIME: ', time.time()-startOverall, 
 
 
 
